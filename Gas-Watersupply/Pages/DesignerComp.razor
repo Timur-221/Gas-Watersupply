@@ -1,0 +1,171 @@
+﻿@page "/DesignerComp"
+
+@using Gas_Watersupply.Data
+<h3>Designer</h3>
+
+<div>
+    @if (IsLive == false)
+    {
+        <ruby>Login:</ruby>
+        <text>@Designer.Login </text><br><br>
+        <ruby>Email:</ruby>
+        <text>@Designer.Email </text><br><br>
+        <ruby>Phone:</ruby>
+        <text>@Designer.Phone </text><br><br>
+        <ruby>OGRN:</ruby>
+        <text>@Designer.OGRN </text><br><br>
+        <ruby>INN:</ruby>
+        <text >@Designer.INN</text><br><br>
+        <ruby>CPP:</ruby>
+        <text>@Designer.CPP</text><br><br>
+        <ruby>Adress:</ruby>
+        <text>@Designer.Adress</text><br><br>
+        <ruby>Director:</ruby>
+        <text>@Designer.Director</text><br><br>
+        <ruby>Chief Engineer:</ruby>
+        <text>@Designer.Chief_Engineer</text>
+
+        <br>
+
+        <br>
+    }
+    else
+    {
+        <ruby>Login</ruby>
+        <input type="text" @bind=@Designer.Login>
+        <br>
+        <br>
+        <ruby>Email</ruby>
+        <input type="text" @bind=@Designer.Email>
+
+        <br>
+
+        <br>
+        <ruby>Phone</ruby>
+        <input type="text" maxlength="11" @bind=@Designer.Phone>
+        <ruby>OGRN</ruby>
+        <input type="text" maxlength="13" @bind=Designer.OGRN>
+        <br>
+        <br>
+        <ruby>INN</ruby>
+        <input type="text" maxlength="10" @bind=Designer.INN>
+        <br> <br>
+        <ruby>CPP</ruby>
+        <input type="text" maxlenght="9" @bind=Designer.CPP>
+        <br>
+        <br>
+        <ruby>Adress</ruby>
+        <input type="text" @bind=Designer.Adress>
+        <br>
+        <br>
+        <ruby>Director</ruby>
+        <input type="text" @bind=Designer.Director>
+        <br>
+        <br>
+        <ruby>Chief Engineer</ruby>
+        <input type="text" @bind=Designer.Chief_Engineer>
+        <br>
+        <br>
+        <button @onclick=GetSave>Сохранить</button>
+    }
+    <br><br />
+    <button @onclick=GetIsLive>Редактировать</button>
+</div>
+
+<InputFile OnChange="FileData" multiple></InputFile>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название файла</th>
+            <th>Тип файла</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        <br>
+        <br />
+        @foreach (var item in Designer.DesignerMainFile)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.GetType</td>
+                @switch (item.Count)
+                {
+                    case 0:
+                        <td>Думаю</td>
+                        break;
+                        case 1:
+                        <td>Одобрен</td>
+                        break;
+                        case 2:
+                        <td>Отклонен</td>
+                        break;
+                   
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+        MD mongo = new MD();
+
+
+
+        public Designer Designer { get; set; }
+
+        [Inject]
+         public ServiceData serviceData { get; set; }
+
+        protected override void OnInitialized()
+        {
+
+            Designer = serviceData.Designer;
+            if (Designer.DesignerMainFile.Count == 0)
+            {
+                Designer.DesignerMainFile = serviceData.DesignerMainFile;
+            };
+
+            base.OnInitialized();
+        }
+
+        private bool IsLive = false;
+
+        public void GetIsLive()
+        {
+            if (IsLive == false)
+            {
+                IsLive = true;
+            }
+            else
+            {
+                IsLive = false;
+            }
+        }
+
+        public void GetSave()
+        {
+            mongo.ChangeDesigner(Designer);
+        }
+
+    [Inject] FileSystemService service { get; set; }
+
+    private List<IBrowserFile> _loadedFiles = new();
+
+    async Task FileData(InputFileChangeEventArgs e)
+    {
+
+        foreach (var file in e.GetMultipleFiles(e.FileCount))
+        {
+            serviceData.BrowserFilesDesigner.Add(file);
+            serviceData.BrowserFiles.Add(file);
+            serviceData.DesignerMainFile.Add(new MainFile(file.Name, file.GetType().ToString(), 0));
+            //Developer.DeveloperMainFile.Add(new MainFile(file.Name, file.GetType().ToString(), 0));
+        }
+    }
+
+   
+
+}

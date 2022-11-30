@@ -1,0 +1,111 @@
+﻿@page "/Login"
+@using Gas_Watersupply.Data
+@inject NavigationManager NavigationManager
+
+
+
+<h3>Authorization</h3>
+<h4>@Massage</h4>
+
+<div>
+    <ruby>Login</ruby>
+    <input type="text" name="login" @bind="Login"><br><br>
+    <ruby>Password</ruby>
+    <input type="password" name="password" @bind="Password"><br><br>
+    <button class="btn btn-primary" @onclick="button">Login</button>
+</div>
+
+@code {
+
+
+    [Inject]
+    public ServiceData serviceData { get; set; }
+
+    MD mongo = new MD();
+
+    private string Login = string.Empty;
+    private string Password = string.Empty;
+    private bool Valid;
+    private string Massage;
+    private Account Account { get; set; }
+    private Type Type { get; set; }
+
+    private void button()
+    {
+
+
+        if (Login != string.Empty || Password != string.Empty)
+        {
+
+
+            var developers = mongo.ListDeveloper();
+            var customers = mongo.ListCustomer();
+            var designers = mongo.ListDesigner();
+
+            var developer = developers.Where(x => x.Login == Login && x.Password == Password).FirstOrDefault();
+            var customer = customers.Where(x => x.Login == Login && x.Password == Password).FirstOrDefault();
+            var designer = designers.Where(x => x.Login == Login && x.Password == Password).FirstOrDefault();
+
+            if (developer !=null)
+            {
+                serviceData.Developer = developer;
+                Find("Developer");
+            }
+            else if (customer != null)
+            {
+                serviceData.Customer = customer;
+                Find("Customer");
+            }
+            else if(designer !=null)
+            {
+                serviceData.Designer = designer;
+                Find("Designer");
+            }
+
+            //Find(Login, Password, "Designer");
+
+            //var customer = mongo.FindCustomer(Login, Password);
+            //var designer = mongo.FindDesigner(Login, Password);
+            //Find(designer.Login, designer.Password, "Designer");
+
+            //if (developer !=null)
+            //{
+            //    Find(developer.Login, developer.Password, "Developer");
+
+            //};
+            //else if (customer != null)
+            //{
+            //    Find(customer.Login, customer.Password, "Customer");
+            //}
+            //else if (designer != null)
+            //{
+            //    Find(designer.Login, designer.Password, "Designer");
+            //}
+
+           
+        }
+        else
+        {
+            Massage = "Заполните поля";
+        }
+    }
+
+    private void Find(string data)
+    {
+        switch (data)
+        {
+            case "Developer":
+                NavigationManager.NavigateTo($"DeveloperComp");
+                break;
+
+            case "Customer":
+                NavigationManager.NavigateTo($"CustomerComp");
+                break;
+            case "Designer":
+                NavigationManager.NavigateTo($"DesignerComp");
+                break;
+
+        }
+    }
+}
+

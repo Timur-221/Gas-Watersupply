@@ -1,0 +1,151 @@
+﻿@page "/CustomerComp"
+@using Gas_Watersupply.Data
+<h3>Customer</h3>
+<div>
+@if (IsLive == false)
+    {
+        <ruby>Login:</ruby>
+        <text>@Customer.Login </text><br><br>
+        <ruby>Email:</ruby>
+        <text>@Customer.Email </text><br><br>
+        <ruby>Phone:</ruby>
+        <text>@Customer.Phone </text><br><br>
+        
+    }
+    else
+    {
+        <ruby>Login</ruby>
+        <input type="text" @bind=@Customer.Login>
+        <br>
+        <br>
+        <ruby>Email</ruby>
+        <input type="text" @bind=@Customer.Email><br><br>
+        <ruby>Phone</ruby>
+        <input type="text" maxlength="11" @bind=@Customer.Phone>
+
+        <br>
+
+        <br>
+        <button @onclick=GetSave>Сохранить</button>
+    }
+    <br><br />
+    <button @onclick=GetIsLive>Редактировать</button>
+</div>
+<br>
+<br />
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название файла</th>
+            <th>Тип файла</th>
+
+        </tr>
+    </thead>
+    <tbody>
+
+
+        @foreach (var item in serviceData.BrowserFiles)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.GetType</td>
+                <td><button @onclick="()=>DataAdd(item)">Принять</button></td>
+                <td><button @onclick="()=>Reomove(item)">Отказать</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+
+
+    MD mongo = new MD();
+
+
+
+    public Customer Customer { get; set; }
+
+    [Inject] FileSystemService service { get; set; }
+
+    [Inject]
+    public ServiceData serviceData { get; set; }
+
+    protected override void OnInitialized()
+    {
+
+        Customer = serviceData.Customer;
+
+
+        base.OnInitialized();
+    }
+
+    private bool IsLive = false;
+
+    public void GetIsLive()
+    {
+        if (IsLive == false)
+        {
+            IsLive = true;
+        }
+        else
+        {
+            IsLive = false;
+        }
+    }
+
+    public void GetSave()
+    {
+        mongo.ChangeCustomer(Customer);
+    }
+
+    public void Reomove(IBrowserFile file)
+    {
+        serviceData.BrowserFiles.Remove(file);
+        MainFile mainFileDeveloper = serviceData.DeveloperMainFile.Where(x => x.Name == file.Name).FirstOrDefault();
+        MainFile mainFileDesigner = serviceData.DesignerMainFile.Where(x => x.Name == file.Name).FirstOrDefault();
+
+        if (mainFileDeveloper !=null)
+        {
+            serviceData.DeveloperMainFile.Remove(mainFileDeveloper);
+            mainFileDeveloper.Count = 2;
+            serviceData.DeveloperMainFile.Add(mainFileDeveloper);
+        }
+        else if (mainFileDesigner != null)
+        {
+            serviceData.DesignerMainFile.Remove(mainFileDesigner);
+            mainFileDesigner.Count = 2;
+            serviceData.DesignerMainFile.Add(mainFileDesigner);
+        }
+
+        
+    }
+
+    public void DataAdd(IBrowserFile file)
+    {
+        service.UploadImageToDb(file);
+
+       
+
+        serviceData.BrowserFiles.Remove(file);
+
+        MainFile mainFileDeveloper = serviceData.DeveloperMainFile.Where(x => x.Name == file.Name).FirstOrDefault();
+        MainFile mainFileDesigner = serviceData.DesignerMainFile.Where(x => x.Name == file.Name).FirstOrDefault();
+        
+
+
+        if (mainFileDeveloper != null)
+        {
+            serviceData.DeveloperMainFile.Remove(mainFileDeveloper);
+            mainFileDeveloper.Count = 1;
+            serviceData.DeveloperMainFile.Add(mainFileDeveloper);
+        }
+        else if (mainFileDesigner != null)
+        {
+            serviceData.DesignerMainFile.Remove(mainFileDesigner);
+            mainFileDesigner.Count = 1;
+            serviceData.DesignerMainFile.Add(mainFileDesigner);
+        }
+    }
+    
+}

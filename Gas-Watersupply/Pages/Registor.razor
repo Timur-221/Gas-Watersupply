@@ -1,0 +1,111 @@
+﻿@page "/Registor"
+@using Gas_Watersupply.Data
+@inject NavigationManager NavigationManager
+
+<h3>Sign in</h3>
+<h4>@Massage</h4>
+
+<div>
+    <ruby>Email</ruby>
+    <input type="email" @bind="Email"><br><br>
+    <ruby>Login</ruby>
+    <input type="text" @bind="Login"><br><br>
+    <ruby>Password</ruby>
+    <input type="password" @bind="Password"><br><br>
+    <ruby>Repeat Password</ruby>
+    <input type="password" @bind="RepeatPassword"><br><br>
+    <ruby>Phone</ruby>
+    <input type="tel" maxlength="11" @bind="Phone"><br><br>
+    <select name="sss" @onchange="SelectedCarsChanged" type="text" >
+        <option text="" value="0">Заказчик</option>
+        <option text="" value="1">Застройщик</option>
+        <option text="" value="2">Проектировщик</option>
+       </select><br><br>
+    <button class="btn btn-primary" @onclick="button">Register</button>
+</div>
+
+<style>
+
+</style>
+
+@code {
+    Account account = new Account();
+
+    MD mongo = new MD();
+
+    private string Email = string.Empty;
+    private string Login = string.Empty;
+    private string Password = string.Empty;
+    private string RepeatPassword = string.Empty;
+    private string Phone = string.Empty;
+    private string Job = string.Empty;
+    private string Massage;
+
+    private string createAccount{get;set;} ="0";
+
+    private void button()
+    {
+
+
+
+        if(Email != string.Empty || Login != string.Empty || Password != string.Empty || RepeatPassword != string.Empty || Phone != string.Empty)
+        {
+
+
+            if(Password == RepeatPassword)
+            {
+                if (createAccount == "0")
+                {
+                    var customer = new Customer();
+                    customer.Email = Email;
+                    customer.Login = Login;
+                    customer.Password = Password;
+                    customer.Phone = Phone;
+                    Massage = string.Empty;
+                    mongo.AddCustomer(customer);
+                }
+                else if (createAccount == "1")
+                {
+                    var developer = new Developer();
+                    developer.Email = Email;
+                    developer.Login = Login;
+                    developer.Password = Password;
+                    developer.Phone = Phone;
+                    Massage = string.Empty;
+                    mongo.AddDeveloper(developer);
+                }
+                else if (createAccount == "2")
+                {
+                    var designer = new Designer();
+                    designer.Email = Email;
+                    designer.Login = Login;
+                    designer.Password = Password;
+                    designer.Phone = Phone;
+                    Massage = string.Empty;
+                    mongo.AddDesigner(designer);
+                }
+
+                NavigationManager.NavigateTo("Login");
+
+            }
+            else
+            {
+                Massage = "Пароль не соответствует тому что вы ввели";
+            }
+        }
+        else
+        {
+            Massage = "Заполните все поля";
+        }
+
+
+    }
+
+    void SelectedCarsChanged(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            createAccount = (string)e.Value;
+        }
+    }
+}

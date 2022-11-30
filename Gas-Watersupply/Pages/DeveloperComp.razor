@@ -1,0 +1,161 @@
+﻿@page "/DeveloperComp"
+@using Gas_Watersupply.Data
+
+<div>
+    <h1>Developer</h1>
+    @if (IsLive == false)
+    {
+        <ruby>Login:</ruby>
+        <text>@Developer.Login </text><br><br>
+        <ruby>Email:</ruby>
+        <text>@Developer.Email </text><br><br>
+        <ruby>Phone:</ruby>
+        <text>@Developer.Phone </text><br><br>
+        <ruby>OGRN:</ruby>
+        <text >@Developer.OGRN </text><br><br>
+        <ruby>INN:</ruby>
+        <text>@Developer.INN</text><br><br>
+        <ruby>CPP:</ruby>
+        <text>@Developer.CPP</text><br><br>
+        <ruby>Adress:</ruby>
+        <text>@Developer.Adress</text><br><br>
+        <ruby>Supervisor:</ruby>
+        <text>@Developer.Supervisor</text><br><br>
+    }
+    else
+    {
+        <ruby>Login</ruby>
+        <input type="text" @bind=@Developer.Login>
+        <br>
+        <br>
+        <ruby>Email</ruby>
+        <input type="text" @bind=@Developer.Email><br><br>
+        <ruby>Phone</ruby>
+        <input type="text" maxlength="11" @bind=@Developer.Phone><br><br>
+        <ruby>OGRN</ruby>
+        <input type="text" maxlength="13" @bind=Developer.OGRN><br><br>
+        <ruby>INN</ruby>
+        <input type="text" maxlength="10" @bind=Developer.INN><br> <br>
+        <ruby>CPP</ruby>
+        <input type="text" maxlenght="9" @bind=Developer.CPP><br><br>
+        <ruby>Adress</ruby>
+        <input type="text" @bind=Developer.Adress><br><br>
+        <ruby>Supervisor</ruby>
+        <input type="text" @bind=Developer.Supervisor><br><br>
+            <button @onclick=GetSave>Сохранить</button>
+    }
+    <br><br/>
+    <button @onclick=GetIsLive>Редактировать</button>
+</div>
+<br>
+<br />
+<InputFile OnChange="FileData" multiple></InputFile>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название файла</th>
+            <th>Тип файла</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+       
+
+        @foreach (var item in Developer.DeveloperMainFile)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.GetType</td>
+                @switch (item.Count)
+                {
+                    case 0:
+                        <td>Думаю</td>
+                        break;
+                    case 1:
+                        <td>Одобрен</td>
+                        break;
+                    case 2:
+                        <td>Отклонен</td>
+                        break;
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+    MD mongo = new MD();
+
+    private bool IsLive = false;
+
+
+    public Developer Developer { get; set; }
+
+    [Inject]
+    public ServiceData serviceData { get; set; }
+
+    protected override void OnInitialized()
+    {
+
+        Developer = serviceData.Developer;
+        if(Developer.DeveloperMainFile.Count ==0)
+        {
+            Developer.DeveloperMainFile = serviceData.DeveloperMainFile;
+        };
+
+        base.OnInitialized();
+    }
+
+    public void GetIsLive()
+    {
+        if(IsLive==false)
+        {
+            IsLive = true;
+        }
+        else
+        {
+            IsLive = false;
+        }
+    }
+
+    public void GetSave()
+    {
+        mongo.ChangeDeveloper(Developer);
+    }
+
+    string name { get; set; }
+
+
+    [Inject] FileSystemService service { get; set; }
+
+    private List<IBrowserFile> _loadedFiles = new();
+
+    async Task FileData(InputFileChangeEventArgs e)
+    {
+
+        foreach (var file in e.GetMultipleFiles(e.FileCount))
+        {
+            serviceData.BrowserFilesDeveloper.Add(file);
+            serviceData.BrowserFiles.Add(file); 
+            serviceData.DeveloperMainFile.Add(new MainFile(file.Name, file.GetType().ToString(), 0));
+            //Developer.DeveloperMainFile.Add(new MainFile(file.Name, file.GetType().ToString(), 0));
+        }
+    }
+
+    public void Reomove(IBrowserFile file)
+    {
+        Developer.BrowserFiles.Remove(file);
+    }
+
+    public void DataAdd(IBrowserFile file)
+    {
+        service.UploadImageToDb(file);
+
+        serviceData.BrowserFilesDeveloper.Remove(file);
+        serviceData.BrowserFiles.Remove(file);
+
+    }
+
+}
